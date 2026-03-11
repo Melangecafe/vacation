@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📅 График отпусков 2026</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --vacation-color: #2196F3;
+            --vacation-hover: #1976D2;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow-x: auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #45a049;
+        }
+        
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-info {
+            background: var(--vacation-color);
+            color: white;
+        }
+        
+        .stats-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Форма добавления отпуска */
+        .vacation-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group select,
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 2000px;
+        }
+        
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 5px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        th {
+            position: sticky;
+            z-index: 10;
+        }
+        
+        /* Первый уровень заголовков - месяцы */
+        th.month-header {
+            background: var(--primary-color);
+            color: white;
+            top: 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        /* Второй уровень заголовков - недели */
+        th.week-header {
+            background: #45a049;
+            color: white;
+            top: 40px;
+            font-size: 11px;
+        }
+        
+        td.name-col {
+            text-align: left;
+            font-weight: 600;
+            background: #f5f5f5;
+            position: sticky;
+            left: 0;
+            min-width: 160px;
+            z-index: 5;
+            border-right: 2px solid #ddd;
+        }
+        
+        td.week-cell {
+            min-width: 30px;
+            height: 35px;
+            position: relative;
+        }
+        
+        td.week-cell.vacation {
+            background: var(--vacation-color);
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* Индикация перегрузки */
+        .week-overload-2 {
+            border-bottom: 3px solid var(--warning-color);
+        }
+        
+        .week-overload-3 {
+            border-bottom: 3px solid var(--danger-color);
+            background: rgba(244, 67, 54, 0.1);
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 13px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .vacation-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .vacation-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f9f9;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .vacation-item:last-child {
+            border-bottom: none;
+        }
+        
+        .vacation-info {
+            flex: 1;
+        }
+        
+        .vacation-employee {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .vacation-dates {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .vacation-weeks {
+            font-size: 12px;
+            color: var(--vacation-color);
+            margin-top: 3px;
+        }
+        
+        .delete-vacation {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s;
+        }
+        
+        .delete-vacation:hover {
+            background: #d32f2f;
+        }
+        
+        /* Модальное окно подтверждения */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .confirm-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .confirm-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .confirm-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .confirm-message {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn-confirm {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-cancel {
+            background: #9e9e9e;
+            color: white;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 300;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .notification-success {
+            background: var(--primary-color);
+        }
+        
+        .notification-warning {
+            background: var(--warning-color);
+        }
+        
+        .notification-error {
+            background: var(--danger-color);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .employee-highlight {
+            background: rgba(33, 150, 243, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 График отпусков 2026</h1>
+        <p class="subtitle">Система планирования отпусков | Максимум 3 человека одновременно</p>
+        
+        <!-- Форма добавления отпуска -->
+        <div class="vacation-form">
+            <div class="form-group">
+                <label for="employeeSelect">👤 Сотрудник</label>
+                <select id="employeeSelect">
+                    <option value="">Выберите сотрудника</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="startDate">📅 Дата начала</label>
+                <input type="date" id="startDate" min="2026-01-01" max="2026-12-31">
+            </div>
+            
+            <div class="form-group">
+                <label for="endDate">📅 Дата окончания</label>
+                <input type="date" id="endDate" min="2026-01-01" max="2026-12-31">
+            </div>
+            
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" onclick="addVacation()">➕ Добавить отпуск</button>
+            </div>
+            
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-warning" onclick="showVacationList()">📋 Список отпусков</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-info" onclick="exportData()">💾 Экспорт данных</button>
+            <button class="btn btn-info" onclick="importData()">📂 Импорт данных</button>
+            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Очистить всё</button>
+            <input type="file" id="importFile" style="display: none;" accept=".json" onchange="handleFileImport(event)">
+        </div>
+        
+        <div class="stats-panel">
+            <div class="stat-item">
+                <div class="stat-value" id="totalEmployees">10</div>
+                <div class="stat-label">Сотрудников</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalVacations">0</div>
+                <div class="stat-label">Записей отпусков</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalVacationWeeks">0</div>
+                <div class="stat-label">Недель в отпуске</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="conflictWeeks">0</div>
+                <div class="stat-label">Недель с перегрузкой</div>
+            </div>
+        </div>
+        
+        <table id="vacationTable">
+            <thead>
+                <tr id="monthRow">
+                    <th rowspan="2">Сотрудник</th>
+                </tr>
+                <tr id="weekRow">
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--vacation-color);"></div>
+                <span>Неделя в отпуске</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--warning-color);"></div>
+                <span>2 человека (внимание)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: var(--danger-color);"></div>
+                <span>3+ человека (перегрузка!)</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно списка отпусков -->
+    <div class="modal" id="vacationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 Записанные отпуска</h2>
+                <span class="close-btn" onclick="closeModal('vacationModal')">&times;</span>
+            </div>
+            <div class="vacation-list" id="vacationListContent">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <div class="confirm-icon">⚠️</div>
+            <div class="confirm-title">Подтверждение удаления</div>
+            <div class="confirm-message" id="confirmMessage">Вы уверены что хотите удалить запись?</div>
+            <div class="confirm-buttons">
+                <button class="btn btn-cancel" onclick="closeConfirmModal()">Отмена</button>
+                <button class="btn btn-confirm" id="confirmDeleteBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+    
+    <input type="hidden" id="maxConcurrent" value="3">
+    
+    <script>
+        // Данные
+        const employees = [
+            "Потапов Александр", "Потапова Валерия", "Каратунова Екатерина", 
+            "Жаданова Алена", "Пятков Аркадий", "Литвин Вячеслав", 
+            "Митусова Наталья", "Митусов Александр", "Фатыхова Татьяна", 
+            "Асролов Бабур"
+        ];
+        
+        const year = 2026;
+        const maxConcurrent = 3;
+        
+        // Распределение недель по месяцам для 2026 года
+        const monthWeeks = {
+            'Январь': [1, 2, 3, 4, 5],
+            'Февраль': [5, 6, 7, 8, 9],
+            'Март': [9, 10, 11, 12, 13],
+            'Апрель': [14, 15, 16, 17, 18],
+            'Май': [18, 19, 20, 21, 22],
+            'Июнь': [22, 23, 24, 25, 26],
+            'Июль': [27, 28, 29, 30, 31],
+            'Август': [31, 32, 33, 34, 35],
+            'Сентябрь': [36, 37, 38, 39, 40],
+            'Октябрь': [40, 41, 42, 43, 44],
+            'Ноябрь': [44, 45, 46, 47, 48],
+            'Декабрь': [48, 49, 50, 51, 52]
+        };
+        
+        const months = Object.keys(monthWeeks);
+        
+        // Хранилище данных - массив записей об отпусках
+        let vacationRecords = [];
+        
+        // Переменная для хранения ID удаляемой записи
+        let deleteRecordId = null;
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            populateEmployeeSelect();
+            createTable();
+            updateStats();
+            renderTable();
+            
+            // Установка дат по умолчанию
+            document.getElementById('startDate').value = '2026-01-01';
+            document.getElementById('endDate').value = '2026-01-07';
+        });
+        
+        // Заполнение выпадающего списка сотрудников
+        function populateEmployeeSelect() {
+            const select = document.getElementById('employeeSelect');
+            employees.forEach((emp, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.innerText = emp;
+                select.appendChild(option);
+            });
+        }
+        
+        // Создание структуры таблицы
+        function createTable() {
+            const monthRow = document.getElementById('monthRow');
+            const weekRow = document.getElementById('weekRow');
+            const tableBody = document.getElementById('tableBody');
+            
+            // Создаем заголовки месяцев
+            months.forEach(month => {
+                const th = document.createElement('th');
+                th.className = 'month-header';
+                th.innerText = month;
+                th.colSpan = monthWeeks[month].length;
+                monthRow.appendChild(th);
+            });
+            
+            // Создаем заголовки недель
+            months.forEach(month => {
+                monthWeeks[month].forEach(week => {
+                    const th = document.createElement('th');
+                    th.className = 'week-header';
+                    th.innerText = `W${week}`;
+                    th.title = getWeekDates(week);
+                    weekRow.appendChild(th);
+                });
+            });
+            
+            // Создаем строки сотрудников
+            employees.forEach((emp, empIndex) => {
+                const tr = document.createElement('tr');
+                tr.id = `employee-row-${empIndex}`;
+                
+                // Ячейка с именем
+                const tdName = document.createElement('td');
+                tdName.className = 'name-col';
+                tdName.innerText = emp;
+                tr.appendChild(tdName);
+                
+                // Ячейки недель
+                months.forEach(month => {
+                    monthWeeks[month].forEach(week => {
+                        const td = document.createElement('td');
+                        td.className = 'week-cell';
+                        td.id = `cell-${empIndex}-${week}`;
+                        td.dataset.employee = empIndex;
+                        td.dataset.week = week;
+                        td.title = getWeekDates(week);
+                        tr.appendChild(td);
+                    });
+                });
+                
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        // Отрисовка отпусков на таблице
+        function renderTable() {
+            // Очистка всех ячеек
+            document.querySelectorAll('.week-cell').forEach(cell => {
+                cell.classList.remove('vacation');
+                cell.innerText = '';
+            });
+            
+            // Заполнение ячеек на основе записей
+            vacationRecords.forEach(record => {
+                record.weeks.forEach(week => {
+                    const cell = document.getElementById(`cell-${record.employeeIndex}-${week}`);
+                    if (cell) {
+                        cell.classList.add('vacation');
+                        cell.innerText = '✓';
+                    }
+                });
+            });
+            
+            updateOverloadIndicators();
+        }
+        
+        // Добавление отпуска
+        function addVacation() {
+            const employeeIndex = document.getElementById('employeeSelect').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            // Валидация
+            if (!employeeIndex) {
+                showNotification('⚠️ Выберите сотрудника', 'warning');
+                return;
+            }
+            
+            if (!startDate || !endDate) {
+                showNotification('⚠️ Выберите даты начала и окончания', 'warning');
+                return;
+            }
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (start > end) {
+                showNotification('⚠️ Дата начала не может быть позже даты окончания', 'error');
+                return;
+            }
+            
+            if (start.getFullYear() !== year || end.getFullYear() !== year) {
+                showNotification('⚠️ Отпуск должен быть в 2026 году', 'error');
+                return;
+            }
+            
+            // Определяем недели
+            const weeks = getWeeksBetweenDates(start, end);
+            
+            if (weeks.length === 0) {
+                showNotification('⚠️ Не удалось определить недели', 'error');
+                return;
+            }
+            
+            // Проверка перегрузки
+            for (const week of weeks) {
+                const concurrent = countConcurrent(week, employeeIndex);
+                if (concurrent >= maxConcurrent) {
+                    showNotification(`⚠️ Перегрузка! В неделю ${week} уже ${concurrent} человек(а)`, 'error');
+                    return;
+                }
+            }
+            
+            // Проверка пересечения с собственными отпусками
+            for (const record of vacationRecords) {
+                if (record.employeeIndex === parseInt(employeeIndex)) {
+                    for (const week of weeks) {
+                        if (record.weeks.includes(week)) {
+                            showNotification(`⚠️ У сотрудника уже есть отпуск в неделю ${week}`, 'error');
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // Создание записи
+            const record = {
+                id: Date.now(),
+                employeeIndex: parseInt(employeeIndex),
+                employee: employees[employeeIndex],
+                startDate: startDate,
+                endDate: endDate,
+                weeks: weeks,
+                createdAt: new Date().toISOString()
+            };
+            
+            vacationRecords.push(record);
+            saveData();
+            renderTable();
+            updateStats();
+            
+            showNotification('✅ Отпуск добавлен', 'success');
+            
+            // Очистка формы
+            document.getElementById('employeeSelect').value = '';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+        }
+        
+        // Получение недель между датами
+        function getWeeksBetweenDates(start, end) {
+            const weeks = new Set();
+            const current = new Date(start);
+            
+            while (current <= end) {
+                const week = getWeekNumber(current);
+                if (week >= 1 && week <= 52) {
+                    weeks.add(week);
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            
+            return Array.from(weeks).sort((a, b) => a - b);
+        }
+        
+        // Получение номера недели
+        function getWeekNumber(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+        
+        // Подсчёт одновременных отпусков
+        function countConcurrent(week, excludeEmployeeIndex = -1) {
+            let count = 0;
+            vacationRecords.forEach(record => {
+                if (record.employeeIndex !== excludeEmployeeIndex && record.weeks.includes(week)) {
+                    count++;
+                }
+            });
+            return count;
+        }
+        
+        // Обновление индикаторов перегрузки
+        function updateOverloadIndicators() {
+            document.querySelectorAll('.week-cell').forEach(cell => {
+                cell.classList.remove('week-overload-2', 'week-overload-3');
+            });
+            
+            for (let week = 1; week <= 52; week++) {
+                const concurrent = countConcurrent(week);
+                
+                if (concurrent >= 3) {
+                    document.querySelectorAll(`td.week-cell[data-week="${week}"]`).forEach(cell => {
+                        cell.classList.add('week-overload-3');
+                    });
+                } else if (concurrent >= 2) {
+                    document.querySelectorAll(`td.week-cell[data-week="${week}"]`).forEach(cell => {
+                        cell.classList.add('week-overload-2');
+                    });
+                }
+            }
+        }
+        
+        // Получение дат недели
+        function getWeekDates(week) {
+            const date = new Date(year, 0, 1);
+            const dayOfWeek = date.getDay();
+            const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1) + (week - 1) * 7;
+            const startDate = new Date(date.setDate(diff));
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 6);
+            
+            const options = { day: 'numeric', month: 'short' };
+            return `${startDate.toLocaleDateString('ru-RU', options)} - ${endDate.toLocaleDateString('ru-RU', options)}`;
+        }
+        
+        // Сохранение данных
+        function saveData() {
+            localStorage.setItem('vacationRecords2026', JSON.stringify(vacationRecords));
+        }
+        
+        // Загрузка данных
+        function loadData() {
+            const saved = localStorage.getItem('vacationRecords2026');
+            if (saved) {
+                vacationRecords = JSON.parse(saved);
+            }
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            const totalWeeks = vacationRecords.reduce((sum, record) => sum + record.weeks.length, 0);
+            
+            let conflictWeeks = 0;
+            for (let week = 1; week <= 52; week++) {
+                if (countConcurrent(week) >= maxConcurrent) {
+                    conflictWeeks++;
+                }
+            }
+            
+            document.getElementById('totalEmployees').innerText = employees.length;
+            document.getElementById('totalVacations').innerText = vacationRecords.length;
+            document.getElementById('totalVacationWeeks').innerText = totalWeeks;
+            document.getElementById('conflictWeeks').innerText = conflictWeeks;
+        }
+        
+        // Показать список отпусков
+        function showVacationList() {
+            const modal = document.getElementById('vacationModal');
+            const content = document.getElementById('vacationListContent');
+            
+            if (vacationRecords.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Нет записанных отпусков</p>';
+            } else {
+                // Сортировка по дате начала
+                const sorted = [...vacationRecords].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+                
+                content.innerHTML = sorted.map(record => `
+                    <div class="vacation-item">
+                        <div class="vacation-info">
+                            <div class="vacation-employee">👤 ${record.employee}</div>
+                            <div class="vacation-dates">📅 ${formatDate(record.startDate)} — ${formatDate(record.endDate)}</div>
+                            <div class="vacation-weeks">📊 Недели: ${record.weeks.join(', ')}</div>
+                        </div>
+                        <button class="delete-vacation" onclick="confirmDelete(${record.id})">🗑️ Удалить</button>
+                    </div>
+                `).join('');
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        // Форматирование даты
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+        
+        // Подтверждение удаления
+        function confirmDelete(recordId) {
+            deleteRecordId = recordId;
+            const record = vacationRecords.find(r => r.id === recordId);
+            
+            if (record) {
+                document.getElementById('confirmMessage').innerText = 
+                    `Вы уверены что хотите удалить запись об отпуске сотрудника "${record.employee}"?`;
+                document.getElementById('confirmModal').style.display = 'flex';
+            }
+        }
+        
+        // Закрытие модального окна подтверждения
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+            deleteRecordId = null;
+        }
+        
+        // Выполнение удаления
+        document.getElementById('confirmDeleteBtn').onclick = function() {
+            if (deleteRecordId !== null) {
+                vacationRecords = vacationRecords.filter(r => r.id !== deleteRecordId);
+                saveData();
+                renderTable();
+                updateStats();
+                showVacationList();
+                closeConfirmModal();
+                showNotification('✅ Запись удалена', 'success');
+            }
+        };
+        
+        // Закрытие модального окна
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Экспорт данных
+        function exportData() {
+            const dataStr = JSON.stringify(vacationRecords, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vacation_schedule_${year}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('✅ Данные экспортированы', 'success');
+        }
+        
+        // Импорт данных
+        function importData() {
+            document.getElementById('importFile').click();
+        }
+        
+        // Обработка импорта файла
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (confirm('Это заменит текущие данные. Продолжить?')) {
+                        vacationRecords = importedData;
+                        saveData();
+                        renderTable();
+                        updateStats();
+                        showNotification('✅ Данные импортированы', 'success');
+                    }
+                } catch (err) {
+                    showNotification('❌ Ошибка импорта: неверный формат файла', 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+        
+        // Очистка всех данных
+        function clearAllData() {
+            if (vacationRecords.length === 0) {
+                showNotification('ℹ️ Нет данных для очистки', 'warning');
+                return;
+            }
+            
+            confirmDeleteAll();
+        }
+        
+        // Подтверждение очистки всех данных
+        function confirmDeleteAll() {
+            document.getElementById('confirmMessage').innerText = 
+                `Вы уверены что хотите удалить ВСЕ записи об отпусках (${vacationRecords.length} записей)? Это действие нельзя отменить!`;
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                vacationRecords = [];
+                saveData();
+                renderTable();
+                updateStats();
+                closeConfirmModal();
+                showNotification('✅ Все данные удалены', 'success');
+                // Восстанавливаем обработчик для одиночного удаления
+                document.getElementById('confirmDeleteBtn').onclick = function() {
+                    if (deleteRecordId !== null) {
+                        vacationRecords = vacationRecords.filter(r => r.id !== deleteRecordId);
+                        saveData();
+                        renderTable();
+                        updateStats();
+                        showVacationList();
+                        closeConfirmModal();
+                        showNotification('✅ Запись удалена', 'success');
+                    }
+                };
+            };
+            document.getElementById('confirmModal').style.display = 'flex';
+        }
+        
+        // Уведомления
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerText = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Закрытие модальных окон по клику вне
+        window.onclick = function(event) {
+            const vacationModal = document.getElementById('vacationModal');
+            const confirmModal = document.getElementById('confirmModal');
+            
+            if (event.target === vacationModal) {
+                closeModal('vacationModal');
+            }
+            if (event.target === confirmModal) {
+                closeConfirmModal();
+            }
+        }
+    </script>
+</body>
+</html>
